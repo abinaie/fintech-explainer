@@ -14,8 +14,11 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 cp .env.example .env
-# edit .env and put your own Anthropic API key in it — never commit .env
+# edit .env and put your Anthropic API key in it — never commit .env
 ```
+
+Generate a separate app key with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+Put it in `.env` as `APP_API_KEY`; do not share it or commit it.
 
 Set a $25/month spend limit in your Anthropic console first:
 https://console.anthropic.com/settings/limits
@@ -29,13 +32,26 @@ uvicorn app.main:app --reload
 
 Try it:
 ```bash
+set -a; source .env; set +a
 curl -X POST http://127.0.0.1:8000/ask \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $APP_API_KEY" \
   -d '{"question": "What is network tokenization and why is it safer than giving a merchant my card number?"}'
 ```
 
 Response includes: `answer`, `source`, `model`, `input_tokens`,
 `output_tokens`, `latency_ms`, `cost_usd`.
+The prompt asks the model to answer fintech questions and decline unrelated ones.
+This is not a guaranteed restriction; check the evals for failures.
+The current Anthropic API does not accept a temperature setting for this model.
+For `/docs`, use **Authorize** to enter the app key.
+`/health` does not require a key.
+Never send the key over an unencrypted public HTTP connection.
+`/ask` allows five authenticated requests per rolling minute, shared by all users.
+Further requests receive HTTP 429 and a `Retry-After` header in seconds.
+The count is in memory: it resets on restart and is separate for each process
+or instance, so it is not a global limit across multiple instances.
+It limits request frequency, not total spending; set an Anthropic spend limit too.
 
 ## Run with Docker
 
@@ -49,10 +65,12 @@ Open `http://127.0.0.1:8000/docs` to try the API.
 ## Deploy on Render
 
 Create a Web Service from this repository and select the Docker runtime.
-Set `ANTHROPIC_API_KEY` in the service's environment settings.
+Set `ANTHROPIC_API_KEY` and `APP_API_KEY` in the service's environment settings.
 Optionally set `LLM_MODEL`; the container listens on Render's `PORT`.
 Use `/health` as the health check path.
 Never add `.env` or an API key to the repository.
+Use a single process and instance for the in-memory rate limit; use shared,
+persistent rate-limit storage before scaling to multiple instances.
 
 ## Evals
 
@@ -60,14 +78,23 @@ Never add `.env` or an API key to the repository.
 python -m app.eval
 ```
 
-Runs the 20-question test set in `app/eval.py` and prints:
+Runs the 23-question test set in `app/eval.py` and prints:
 each answer, key facts to check, median latency, and total cost.
 Score correct / wrong / hallucinated by hand — that's the point. Then automate.
+The eval runs in-process, so it does not use the HTTP app key or rate limit.
+
+## Tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The access-control and rate-limit tests use fake Anthropic responses and make no paid API calls.
 
 ## Files
 
 - `app/main.py` — FastAPI app, LLM call, structured output, cost calculator
-- `app/eval.py` — 20-question eval set + runner
+- `app/eval.py` — 23-question eval set + runner
 - `app/pricing.py` — per-model pricing table (Nov 2026, update if rates change)
 - `requirements.txt` — Python deps
 - `Dockerfile` — `docker build -t fintech-explainer .` then run it
@@ -79,7 +106,7 @@ Score correct / wrong / hallucinated by hand — that's the point. Then automate
   per 1M tokens, Nov 2026). Set `LLM_MODEL=claude-sonnet-5-5` in `.env` only
   when you want a quality check.
 - Every `/ask` response shows its own cost, so you can see it add up.
-- If you run all 20 eval questions on Haiku, expect well under $0.10 total.
+- If you run all 23 eval questions on Haiku, expect well under $0.10 total.
 
 ## Next step after this works
 
