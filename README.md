@@ -1,4 +1,4 @@
-# Project 0 — Fintech Explainer LLM App
+# Project 0: Fintech Explainer LLM App
 
 A small FastAPI app that answers payment questions in plain English,
 with a suggested source, a token counter, and a cost-per-query readout.
@@ -23,7 +23,7 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 cp .env.example .env
-# edit .env and add the Anthropic API key — never commit .env
+# edit .env and add the Anthropic API key; never commit .env
 ```
 
 Generate a separate app key with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
@@ -93,7 +93,7 @@ python -m app.eval
 
 Runs the 23-question test set in `app/eval.py` and prints:
 each answer, key facts to check, median latency, and total cost.
-Score correct / wrong / hallucinated by hand — that's the point. Then automate.
+Score correct / wrong / hallucinated by hand. Then automate.
 The eval runs in-process, so it does not use the HTTP app key or rate limit.
 
 ## Tests
@@ -106,13 +106,13 @@ The access-control and rate-limit tests use fake Anthropic responses and make no
 
 ## Files
 
-- `app/main.py` — FastAPI app, LLM call, structured output, cost calculator
-- `app/index.html` — browser interface for asking questions
-- `app/eval.py` — 23-question eval set + runner
-- `app/pricing.py` — per-model pricing table (Nov 2026, update if rates change)
-- `requirements.txt` — Python deps
-- `Dockerfile` — `docker build -t fintech-explainer .` then run it
-- `.env.example` — copy to `.env` and add the API key
+- `app/main.py`: FastAPI app, LLM call, structured output, cost calculator
+- `app/index.html`: browser interface for asking questions
+- `app/eval.py`: 23-question eval set + runner
+- `app/pricing.py`: per-model pricing table (Nov 2026, update if rates change)
+- `requirements.txt`: Python deps
+- `Dockerfile`: `docker build -t fintech-explainer .` then run it
+- `.env.example`: copy to `.env` and add the API key
 
 ## Cost control
 
@@ -124,5 +124,5 @@ The access-control and rate-limit tests use fake Anthropic responses and make no
 
 ## Next step after this works
 
-Project 1 is RAG over public payments docs — same app shape, plus
+Project 1 is RAG over public payments docs: same app shape, plus
 retrieval, citations to document chunks, and Ragas / DeepEval evals.
