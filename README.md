@@ -1,11 +1,10 @@
 # Project 0 — Fintech Explainer LLM App
 
-Your first shipped AI-engineer project. A small FastAPI app that answers
-payment questions in plain English, with a source, a token counter, and a
-cost-per-query readout.
+A small FastAPI app that answers payment questions in plain English,
+with a suggested source, a token counter, and a cost-per-query readout.
 
-**What it proves:** you can ship an LLM API app end-to-end — API, structured
-output, evals, Docker — not just a notebook.
+**What it demonstrates:** an end-to-end LLM application with an API,
+structured output, evaluations, and Docker.
 
 ![Fintech Explainer interface](./screenshot.png)
 
@@ -24,13 +23,13 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 cp .env.example .env
-# edit .env and put your Anthropic API key in it — never commit .env
+# edit .env and add the Anthropic API key — never commit .env
 ```
 
 Generate a separate app key with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
 Put it in `.env` as `APP_API_KEY`; do not share it or commit it.
 
-Set a $25/month spend limit in your Anthropic console first:
+Set a $25/month spend limit in the Anthropic console first:
 https://console.anthropic.com/settings/limits
 
 ## Run it
@@ -50,7 +49,7 @@ set -a; source .env; set +a
 curl -X POST http://127.0.0.1:8000/ask \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $APP_API_KEY" \
-  -d '{"question": "What is network tokenization and why is it safer than giving a merchant my card number?"}'
+  -d '{"question": "What is network tokenization and why is it safer than giving a merchant a card number?"}'
 ```
 
 Response includes: `answer`, `source`, `model`, `input_tokens`,
@@ -113,15 +112,15 @@ The access-control and rate-limit tests use fake Anthropic responses and make no
 - `app/pricing.py` — per-model pricing table (Nov 2026, update if rates change)
 - `requirements.txt` — Python deps
 - `Dockerfile` — `docker build -t fintech-explainer .` then run it
-- `.env.example` — copy to `.env`, fill in your key
+- `.env.example` — copy to `.env` and add the API key
 
 ## Cost control
 
 - Default model is the cheap one: `claude-haiku-5-5` ($0.10 input / $0.50 output
   per 1M tokens, Nov 2026). Set `LLM_MODEL=claude-sonnet-5-5` in `.env` only
-  when you want a quality check.
-- Every `/ask` response shows its own cost, so you can see it add up.
-- If you run all 23 eval questions on Haiku, expect well under $0.10 total.
+  for quality checks.
+- Every `/ask` response shows its estimated cost.
+- Running all 23 eval questions on Haiku is expected to cost well under $0.10 total.
 
 ## Next step after this works
 
