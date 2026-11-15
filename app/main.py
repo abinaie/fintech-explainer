@@ -17,12 +17,14 @@ import os
 import secrets
 import time
 from collections import deque
+from pathlib import Path
 from threading import Lock
 from time import monotonic
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi.responses import FileResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
@@ -98,6 +100,11 @@ def enforce_rate_limit() -> None:
                 headers={"Retry-After": str(retry_after)},
             )
         recent_requests.append(now)
+
+
+@app.get("/", include_in_schema=False)
+def home() -> FileResponse:
+    return FileResponse(Path(__file__).with_name("index.html"))
 
 
 @app.get("/health")

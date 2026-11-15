@@ -7,6 +7,16 @@ cost-per-query readout.
 **What it proves:** you can ship an LLM API app end-to-end — API, structured
 output, evals, Docker — not just a notebook.
 
+![Fintech Explainer interface](./screenshot.png)
+
+## How it works
+
+- The browser interface uses plain HTML, CSS, and JavaScript; no Node.js is required.
+- FastAPI serves the page and its JavaScript sends the question and app key to `/ask`.
+- The API checks the key and rate limit, calls Claude, and returns the answer,
+  suggested source, token usage, latency, and estimated cost.
+- The source is a suggested source type, not a verified citation. Answers can be wrong.
+
 ## Setup (10 minutes)
 
 ```bash
@@ -27,8 +37,12 @@ https://console.anthropic.com/settings/limits
 
 ```bash
 uvicorn app.main:app --reload
-# open http://127.0.0.1:8000/docs
+# open http://127.0.0.1:8000
 ```
+
+Enter the `APP_API_KEY` from `.env`, then ask a fintech question.
+The key stays in the page while it is open and is not saved by the app.
+The API test interface is available at `http://127.0.0.1:8000/docs`.
 
 Try it:
 ```bash
@@ -60,7 +74,7 @@ docker build -t fintech-explainer .
 docker run --rm -p 8000:8000 --env-file .env fintech-explainer
 ```
 
-Open `http://127.0.0.1:8000/docs` to try the API.
+Open `http://127.0.0.1:8000` for the app, or `/docs` for the API.
 
 ## Deploy on Render
 
@@ -94,6 +108,7 @@ The access-control and rate-limit tests use fake Anthropic responses and make no
 ## Files
 
 - `app/main.py` — FastAPI app, LLM call, structured output, cost calculator
+- `app/index.html` — browser interface for asking questions
 - `app/eval.py` — 23-question eval set + runner
 - `app/pricing.py` — per-model pricing table (Nov 2026, update if rates change)
 - `requirements.txt` — Python deps
